@@ -1,38 +1,44 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 class Program
 {
     static void Main(string[] args)
     {
-        List<Recipe> recipes = new List<Recipe>();
+        Recipe recipe = new Recipe();
 
-        bool running = true;
+     bool running = true;
         while (running)
         {
-            Console.WriteLine("Menu:");
-            Console.WriteLine("1. Enter a new recipe");
-            Console.WriteLine("2. Display all recipes");
-            Console.WriteLine("3. Select a recipe to display");
-            Console.WriteLine("4. Exit");
-
-            Console.Write("Enter your choice: ");
+            Console.WriteLine("-------Menu:-------");
+            Console.WriteLine("1. Enter recipe details");
+            Console.WriteLine("2. Display recipe");
+            Console.WriteLine("3. Scale recipe");
+            Console.WriteLine("4. Reset quantities");
+            Console.WriteLine("5. Clear recipe");
+            Console.WriteLine("6. Exit");
+//added two new options in the menu to faccilite the changes. 
+            Console.Write("Enter your choice as a number: ");
             string choice = Console.ReadLine();
-
+//switch case to determine user choice and what method to use. 
             switch (choice)
             {
                 case "1":
-                    Recipe newRecipe = EnterRecipe();
-                    recipes.Add(newRecipe);
+                    recipe.EnterDetails();
                     break;
                 case "2":
-                    DisplayAllRecipes(recipes);
+                    recipe.Display();
                     break;
                 case "3":
-                    SelectRecipeToDisplay(recipes);
+                    recipe.Scale();
                     break;
                 case "4":
+                    recipe.ResetQuantities();
+                    break;
+                case "5":
+                    recipe.Clear();
+                    break;
+                case "6":
                     running = false;
                     break;
                 default:
@@ -43,14 +49,21 @@ class Program
             Console.WriteLine();
         }
     }
+}
 
-    static Recipe EnterRecipe()
+class Recipe
+{// two lists created to store the ingridients and the steps during cooking 
+    private List<Ingredient> ingredients;
+    private List<string> steps;
+
+    public Recipe()
     {
-        Console.Write("Enter the recipe name: ");
-        string name = Console.ReadLine();
+        ingredients = new List<Ingredient>();  
+        steps = new List<string>();
+    }
 
-        Recipe recipe = new Recipe(name);
-
+    public void EnterDetails()
+    {
         Console.Write("Enter the number of ingredients: ");
         int numIngredients = int.Parse(Console.ReadLine());
 
@@ -58,18 +71,14 @@ class Program
         {
             Console.WriteLine($"Ingredient {i + 1}:");
             Console.Write("Name: ");
-            string ingredientName = Console.ReadLine();
+            string name = Console.ReadLine();
             Console.Write("Quantity: ");
             double quantity = double.Parse(Console.ReadLine());
             Console.Write("Unit of measurement: ");
             string unit = Console.ReadLine();
-            Console.Write("Calories: ");
-            int calories = int.Parse(Console.ReadLine());
-            Console.Write("Food group: ");
-            string foodGroup = Console.ReadLine();
 
-            Ingredient ingredient = new Ingredient(ingredientName, quantity, unit, calories, foodGroup);
-            recipe.AddIngredient(ingredient);
+            Ingredient ingredient = new Ingredient(name, quantity, unit);
+            ingredients.Add(ingredient);//adds the  new ingridient to the list 
         }
 
         Console.Write("Enter the number of steps: ");
@@ -81,96 +90,18 @@ class Program
             Console.Write("Description: ");
             string description = Console.ReadLine();
 
-            recipe.AddStep(description);
-        }
-
-        return recipe;
-    }
-
-    static void DisplayAllRecipes(List<Recipe> recipes)
-    {
-        if (recipes.Count == 0)
-        {
-            Console.WriteLine("No recipes found.");
-            return;
-        }
-
-        Console.WriteLine("Recipes:");
-
-        foreach (Recipe recipe in recipes.OrderBy(r => r.Name))
-        {
-            Console.WriteLine(recipe.Name);
+            steps.Add(description);
         }
     }
 
-    static void SelectRecipeToDisplay(List<Recipe> recipes)
-    {
-        if (recipes.Count == 0)
-        {
-            Console.WriteLine("No recipes found.");
-            return;
-        }
-
-        Console.WriteLine("Select a recipe to display:");
-        for (int i = 0; i < recipes.Count; i++)
-        {
-            Console.WriteLine($"{i + 1}. {recipes[i].Name}");
-        }
-
-        Console.Write("Enter the number of the recipe: ");
-        int recipeIndex = int.Parse(Console.ReadLine());
-
-        if (recipeIndex < 1 || recipeIndex > recipes.Count)
-        {
-            Console.WriteLine("Invalid recipe number.");
-            return;
-        }
-
-        Recipe selectedRecipe = recipes[recipeIndex - 1];
-        selectedRecipe.Display();
-    }
-}
-
-class Recipe
-{
-    public string Name { get; set; }
-    private List<Ingredient> ingredients;
-    private List<string> steps;
-
-    public Recipe(string name)
-    {
-        Name = name;
-        ingredients = new List<Ingredient>();
-        steps = new List<string>();
-    }
-
-    public void AddIngredient(Ingredient ingredient)
-    {
-        ingredients.Add(ingredient);
-    }
-
-    public void AddStep(string step)
-    {
-        steps.Add(step);
-    }
-
+//the class below allows the user to veiw all the details of their chosen recepie.
     public void Display()
     {
-        Console.WriteLine($"Recipe: {Name}");
+        Console.WriteLine("Recipe:");
         Console.WriteLine("Ingredients:");
-
-        int totalCalories = 0;
         foreach (Ingredient ingredient in ingredients)
         {
-            Console.WriteLine($"{ingredient.Quantity} {ingredient.Unit} {ingredient.Name}");
-            totalCalories += ingredient.Calories;
-        }
-
-        Console.WriteLine($"Total calories: {totalCalories}");
-
-        if (totalCalories > 300)
-        {
-            Console.WriteLine("WARNING: This recipe exceeds 300 calories.");
+            Console.WriteLine($"{ingredient.Quantity} {ingredient.Unit} of {ingredient.Name}");
         }
 
         Console.WriteLine("Steps:");
@@ -179,24 +110,57 @@ class Recipe
             Console.WriteLine($"{i + 1}. {steps[i]}");
         }
     }
+
+    public void Scale()
+    {
+        Console.Write("Enter the scaling factor (0.5, 2, or 3): ");
+        double scalingFactor = double.Parse(Console.ReadLine());
+
+        foreach (Ingredient ingredient in ingredients)
+        {
+            ingredient.ScaleQuantity(scalingFactor);
+        }
+    }
+// method to change the
+    public void ResetQuantities()
+    {
+        foreach (Ingredient ingredient in ingredients)
+        {
+            ingredient.ResetQuantity();
+        }
+    }
+
+    public void Clear()
+    {
+        ingredients.Clear();
+        steps.Clear();
+    }
 }
 
-
-
-class Ingredient
+//adding ingridients to the recepie
+ class Ingredient
 {
     public string Name { get; set; }
     public double Quantity { get; set; }
     public string Unit { get; set; }
-    public int Calories { get; set; }
-    public string FoodGroup { get; set; }
 
-    public Ingredient(string name, double quantity, string unit, int calories, string foodGroup)
+    private double originalQuantity;
+
+    public Ingredient(string name, double quantity, string unit)
     {
         Name = name;
         Quantity = quantity;
         Unit = unit;
-        Calories = calories;
-        FoodGroup = foodGroup;
+        originalQuantity = quantity;
+    }
+
+    public void ScaleQuantity(double scalingFactor)
+    {
+        Quantity = originalQuantity * scalingFactor;
+    }
+
+    public void ResetQuantity()
+    {
+        Quantity = originalQuantity;
     }
 }
